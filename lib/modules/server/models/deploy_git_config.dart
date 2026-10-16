@@ -37,7 +37,7 @@ class DeployGitConfig {
     return DeployGitConfig(
       repository: _stringValue(
         git['Repository'],
-        'https://e.coding.net/onmyojiautoscript/oas/OnmyojiAutoScript.git',
+        'https://github.com/kongdr418/OnmyojiAutoScript.git',
       ),
       branch: _stringValue(git['Branch'], 'master'),
       gitExecutable: _stringValue(
