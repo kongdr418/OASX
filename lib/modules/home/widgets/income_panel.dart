@@ -10,8 +10,8 @@ import 'package:oasx/translation/i18n_content.dart';
 
 const _kIncomePanelPadding = 12.0;
 const _kIncomeTileSpacing = 8.0;
-const _kIncomeTileMinWidth = 148.0;
-const _kIncomeIconSize = 28.0;
+const _kIncomeTileMinWidth = 120.0;
+const _kIncomeIconSize = 22.0;
 const _kIncomeRadius = 10.0;
 const _kIncomeChartHeight = 220.0;
 // 最上面那个刻度标签是画在绘图区顶边上的，不给点余量会显得很憋
@@ -292,20 +292,12 @@ class _IncomeHeader extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
+        // 日期右边按钮上已经有了，这里只留时间
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(I18n.homeIncomeTab.tr, style: theme.textTheme.titleMedium),
-              if (collectedAt.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    '${I18n.homeIncomeCollectedAt.tr} $collectedAt',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ),
-            ],
+          child: Text(
+            formatIncomeTimeLabel(collectedAt),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ),
         TextButton.icon(
@@ -356,7 +348,7 @@ class _IncomeGrid extends StatelessWidget {
             for (final item in day.items)
               SizedBox(
                 width: tileWidth,
-                child: _IncomeTile(item: item, baselineDate: day.baselineDate),
+                child: _IncomeTile(item: item),
               ),
           ],
         );
@@ -367,10 +359,9 @@ class _IncomeGrid extends StatelessWidget {
 
 /// One resource tile: icon, name, value and change.
 class _IncomeTile extends StatelessWidget {
-  const _IncomeTile({required this.item, required this.baselineDate});
+  const _IncomeTile({required this.item});
 
   final IncomeItem item;
-  final String baselineDate;
 
   @override
   Widget build(BuildContext context) {
@@ -378,7 +369,7 @@ class _IncomeTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final delta = item.delta;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(_kIncomeRadius),
@@ -403,33 +394,28 @@ class _IncomeTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Expanded(
-                child: Text(
-                  item.hasValue ? formatIncomeValue(item.value) : '--',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                item.hasValue ? formatIncomeValue(item.value) : '--',
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
+              // 涨跌占满剩余宽度并右对齐：窄格子里省略掉，也不会把格子撑高
               if (delta != null && delta != 0)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Text(
-                    '${delta > 0 ? '↑' : '↓'} ${delta > 0 ? '+' : ''}'
-                    '${formatIncomeValue(delta.abs())}',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: incomeDeltaColor(delta)),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Text(
+                      '${delta > 0 ? '↑' : '↓'} ${delta > 0 ? '+' : ''}'
+                      '${formatIncomeValue(delta.abs())}',
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: incomeDeltaColor(delta)),
+                    ),
                   ),
                 ),
             ],
           ),
-          if (delta != null && baselineDate.isNotEmpty)
-            Text(
-              '${I18n.homeIncomeCompareWith.tr} '
-              '${formatIncomeDayLabel(baselineDate)}',
-              style: theme.textTheme.labelSmall
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
         ],
       ),
     );
@@ -1038,6 +1024,16 @@ String formatIncomeSignedValue(double? value) {
   final rounded = value.round();
   final sign = rounded > 0 ? '+' : (rounded < 0 ? '-' : '');
   return '$sign${formatIncomeValue(rounded.abs())}';
+}
+
+/// 从 "2026-10-16 16:51:14" 里只取时间部分
+String formatIncomeTimeLabel(String collectedAt) {
+  final text = collectedAt.trim();
+  if (text.isEmpty) {
+    return '';
+  }
+  final parts = text.split(' ');
+  return parts.length >= 2 ? parts[1] : text;
 }
 
 /// Formats a yyyy-MM-dd key into MM-dd.
