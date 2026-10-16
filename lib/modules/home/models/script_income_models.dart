@@ -95,6 +95,174 @@ class IncomeDateList {
   final List<String> dates;
 }
 
+/// One day inside the history payload.
+class IncomeHistoryRecord {
+  IncomeHistoryRecord({required this.dateKey, required this.values});
+
+  factory IncomeHistoryRecord.fromJson(Map<String, dynamic> json) {
+    final raw = json['values'];
+    final values = <String, int>{};
+    if (raw is Map) {
+      raw.forEach((key, value) => values[key.toString()] = _readInt(value));
+    }
+    return IncomeHistoryRecord(
+      dateKey: json['date']?.toString() ?? '',
+      values: values,
+    );
+  }
+
+  final String dateKey;
+  final Map<String, int> values;
+
+  /// Value of one resource on this day, null when the field is missing.
+  int? valueOf(String name) => values[name];
+}
+
+/// One point of the trend chart.
+class IncomeChartPoint {
+  const IncomeChartPoint({
+    required this.dayOffset,
+    required this.value,
+    required this.dateKey,
+  });
+
+  /// Days since the start of the selected range, used as the x axis.
+  final double dayOffset;
+  final double value;
+  final String dateKey;
+}
+
+/// Summary of one resource inside the selected range.
+class IncomeRangeStats {
+  const IncomeRangeStats({
+    required this.count,
+    required this.first,
+    required this.last,
+    required this.min,
+    required this.max,
+  });
+
+  final int count;
+  final double first;
+  final double last;
+  final double min;
+  final double max;
+
+  /// Change across the range; null when there is nothing to compare.
+  double? get change => count >= 2 ? last - first : null;
+}
+
+/// Response of `/income/{name}/history`.
+class IncomeHistory {
+  IncomeHistory({
+    required this.scriptName,
+    required this.days,
+    required this.start,
+    required this.end,
+    required this.records,
+  });
+
+  factory IncomeHistory.fromJson(Map<String, dynamic> json) {
+    final raw = json['records'];
+    final records = raw is List
+        ? raw
+            .whereType<Map>()
+            .map((item) =>
+                IncomeHistoryRecord.fromJson(item.cast<String, dynamic>()))
+            .toList()
+        : <IncomeHistoryRecord>[];
+    return IncomeHistory(
+      scriptName: json['script_name']?.toString() ?? '',
+      days: _readInt(json['days']),
+      start: json['start']?.toString() ?? '',
+      end: json['end']?.toString() ?? '',
+      records: records,
+    );
+  }
+
+  final String scriptName;
+  final int days;
+  final String start;
+  final String end;
+  final List<IncomeHistoryRecord> records;
+
+  bool get isEmpty => records.isEmpty;
+
+  /// 第一条记录的日期。折线图的 x=0 就是这天，这样选了长时间范围
+  /// 但只有几天数据时，不会在左边留出一大片空白。
+  String get firstDateKey => records.isEmpty ? start : records.first.dateKey;
+
+  /// Points of one resource。x 是距第一条记录的天数，缺记录的日子会留出空隙。
+  List<IncomeChartPoint> pointsOf(String name) {
+    final startDate = DateTime.tryParse(firstDateKey);
+    final points = <IncomeChartPoint>[];
+    for (final record in records) {
+      final value = record.valueOf(name);
+      if (value == null || value < 0) {
+        continue;
+      }
+      final day = DateTime.tryParse(record.dateKey);
+      final offset = (day != null && startDate != null)
+          ? day.difference(startDate).inDays.toDouble()
+          : points.length.toDouble();
+      points.add(IncomeChartPoint(
+        dayOffset: offset,
+        value: value.toDouble(),
+        dateKey: record.dateKey,
+      ));
+    }
+    return points;
+  }
+
+  /// 区间统计，没有任何点时返回 null
+  IncomeRangeStats? statsOf(String name) {
+    final points = pointsOf(name);
+    if (points.isEmpty) {
+      return null;
+    }
+    var min = points.first.value;
+    var max = points.first.value;
+    for (final point in points) {
+      if (point.value < min) {
+        min = point.value;
+      }
+      if (point.value > max) {
+        max = point.value;
+      }
+    }
+    return IncomeRangeStats(
+      count: points.length,
+      first: points.first.value,
+      last: points.last.value,
+      min: min,
+      max: max,
+    );
+  }
+}
+
+/// Response of the delete endpoints.
+class IncomeDeleteResult {
+  IncomeDeleteResult({
+    required this.scriptName,
+    required this.deleted,
+    required this.remaining,
+  });
+
+  factory IncomeDeleteResult.fromJson(Map<String, dynamic> json) {
+    final raw = json['deleted'];
+    return IncomeDeleteResult(
+      scriptName: json['script_name']?.toString() ?? '',
+      deleted:
+          raw is List ? raw.map((item) => item.toString()).toList() : <String>[],
+      remaining: _readInt(json['remaining']),
+    );
+  }
+
+  final String scriptName;
+  final List<String> deleted;
+  final int remaining;
+}
+
 /// Reads an int value safely.
 int _readInt(dynamic value) {
   if (value is num) {
