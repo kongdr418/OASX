@@ -10,6 +10,7 @@ import 'package:oasx/api/api_interceptor.dart';
 import 'package:oasx/api/config_transfer_models.dart';
 import 'package:oasx/config/constants.dart';
 import 'package:oasx/modules/common/models/storage_key.dart';
+import 'package:oasx/modules/home/models/script_income_models.dart';
 import 'package:oasx/modules/home/models/script_statistics_models.dart';
 import 'package:oasx/modules/log/log_browser_models.dart';
 import 'package:oasx/translation/i18n.dart';
@@ -26,6 +27,7 @@ part 'api_client_task_transfer.dart';
 part 'api_client_script.dart';
 part 'api_client_feedback.dart';
 part 'api_client_statistics.dart';
+part 'api_client_income.dart';
 part 'api_client_logs.dart';
 
 class ApiResult<T> {
