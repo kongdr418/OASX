@@ -213,6 +213,15 @@ class I18n {
       homeIncomeNextMonth = 'home_income_next_month',
       homeIncomeSelectAllMonth = 'home_income_select_all_month';
   static const String homeIncomePickDate = 'home_income_pick_date';
+  static const String homeScreenTab = 'home_screen_tab',
+      homeScreenCapture = 'home_screen_capture',
+      homeScreenCapturing = 'home_screen_capturing',
+      homeScreenCapturedAt = 'home_screen_captured_at',
+      homeScreenOverwriteHint = 'home_screen_overwrite_hint',
+      homeScreenLoading = 'home_screen_loading',
+      homeScreenEmpty = 'home_screen_empty';
+  static const String homeScreenErrorTimeout = 'home_screen_error_timeout',
+      homeScreenErrorServer = 'home_screen_error_server';
   static const String homeStatsToday = 'home_stats_today',
       homeStatsSelectedDate = 'home_stats_selected_date',
       homeStatsTasks = 'home_stats_tasks',

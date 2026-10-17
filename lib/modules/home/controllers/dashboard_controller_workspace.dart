@@ -119,6 +119,14 @@ extension HomeDashboardWorkspaceX on HomeDashboardController {
     return activeWorkbenchTab.value == HomeWorkbenchTab.income;
   }
 
+  bool get isScreenVisibleInCurrentLayout {
+    if (workbenchLayoutMode.value == HomeWorkbenchLayoutMode.threePane) {
+      return displayedWorkbenchSidebarTabFor(workbenchLayoutMode.value) ==
+          HomeWorkbenchTab.screen;
+    }
+    return activeWorkbenchTab.value == HomeWorkbenchTab.screen;
+  }
+
   List<ScriptModel> get orderedScripts {
     final models = <ScriptModel>[];
     for (final name in _scriptService.scriptOrderList) {

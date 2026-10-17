@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:oasx/modules/home/controllers/dashboard_controller.dart';
 import 'package:oasx/modules/home/controllers/income_controller.dart';
+import 'package:oasx/modules/home/controllers/screen_controller.dart';
 import 'package:oasx/modules/home/controllers/statistics_controller.dart';
 import 'package:oasx/modules/args/index.dart';
 
@@ -21,6 +22,9 @@ class HomeBinding extends Bindings {
     if (!Get.isRegistered<HomeIncomeController>()) {
       Get.put<HomeIncomeController>(HomeIncomeController(),
           permanent: true);
+    }
+    if (!Get.isRegistered<HomeScreenController>()) {
+      Get.put<HomeScreenController>(HomeScreenController(), permanent: true);
     }
   }
 }
